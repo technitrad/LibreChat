@@ -1,0 +1,36 @@
+# LibreChat Configuration
+# https://www.librechat.ai/docs/configuration/librechat_yaml
+
+version: 1.2.1
+cache: true
+
+# =============================================================================
+# MCP Server Configuration
+# =============================================================================
+# XLIFF MCP provides translation document tools for linguists
+
+mcpServers:
+  xliff:
+    type: sse
+    url: https://xliff-mcp-production.up.railway.app/sse
+
+# =============================================================================
+# Available XLIFF MCP Tools
+# =============================================================================
+# Once connected, these tools are available in chat:
+#
+# Project Tools:
+#   - search_projects: Find memoQ projects by name
+#   - get_project: Get project details
+#
+# Document Tools:
+#   - list_documents: List documents in a project
+#   - load_document: Load document segments into context
+#   - get_segments: Browse segments with filters
+#   - get_segment_with_context: View segment in context
+#   - search_segments: Search text in document
+#   - get_document_summary: Get document statistics
+#
+# TM/TB Tools:
+#   - tm_concordance: Search translation memory
+#   - termbase_lookup: Look up terms
