@@ -37,3 +37,4 @@ mcpServers:
 # MCP enabled
 # Redeploy with FastMCP sse_app fix
 # Trigger rebuild
+# Route fix
