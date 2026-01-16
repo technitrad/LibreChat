@@ -36,3 +36,4 @@ mcpServers:
 #   - termbase_lookup: Look up terms
 # MCP enabled
 # Redeploy with FastMCP sse_app fix
+# Trigger rebuild
