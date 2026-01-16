@@ -35,4 +35,4 @@ mcpServers:
 #   - tm_concordance: Search translation memory
 #   - termbase_lookup: Look up terms
 # MCP enabled
-# Forced redeploy 1768522294
+# Redeploy after xliff-mcp routing fix
