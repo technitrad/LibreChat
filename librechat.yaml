@@ -38,3 +38,4 @@ mcpServers:
 # Redeploy with FastMCP sse_app fix
 # Trigger rebuild
 # Route fix
+# Route handler fix
