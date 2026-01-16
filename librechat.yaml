@@ -7,37 +7,45 @@ cache: true
 # =============================================================================
 # MCP Server Configuration
 # =============================================================================
-# XLIFF MCP provides translation document tools for linguists
+# NEOLO TMS MCP - Translation Management System integration for memoQ and Phrase
 
 mcpServers:
-  xliff:
+  neolo-tms:
     type: sse
-    url: https://xliff-mcp-production.up.railway.app/sse
+    url: https://neolo-tms-mcp-production.up.railway.app/sse
+    headers:
+      Authorization: "Bearer ${NEOLO_TMS_MCP_API_KEY}"
 
 # =============================================================================
-# Available XLIFF MCP Tools
+# Available NEOLO TMS MCP Tools
 # =============================================================================
 # Once connected, these tools are available in chat:
 #
 # Project Tools:
-#   - search_projects: Find memoQ projects by name
-#   - get_project: Get project details
+#   - list_projects: List all projects from TMS
+#   - get_project: Get project details by GUID
+#   - get_project_statistics: Get project statistics
 #
 # Document Tools:
 #   - list_documents: List documents in a project
-#   - load_document: Load document segments into context
-#   - get_segments: Browse segments with filters
-#   - get_segment_with_context: View segment in context
-#   - search_segments: Search text in document
-#   - get_document_summary: Get document statistics
+#   - get_document: Get document details
+#   - export_document: Export document content
+#   - get_segment_pairs: Get source/target segment pairs
+#   - reimport_document: Reimport translated document
 #
-# TM/TB Tools:
-#   - tm_concordance: Search translation memory
-#   - termbase_lookup: Look up terms
-# MCP enabled
-# Redeploy with FastMCP sse_app fix
-# Trigger rebuild
-# Route fix
-# Route handler fix
-# ASGI fix
-# Trigger rebuild 1768526057
+# Document Caching Tools:
+#   - load_document: Load document segments into session cache
+#   - get_segment_with_context: View segment with surrounding context
+#   - search_segments: Search text within document
+#   - get_document_summary: Get document statistics
+#   - unload_document: Remove document from cache
+#
+# Terminology Tools:
+#   - list_termbases: List available termbases
+#   - search_termbase: Search terms in termbase
+#
+# Translation Memory Tools:
+#   - list_translation_memories: List available TMs
+#   - search_translation_memory: Search TM for concordance
+#
+# Supported TMS Providers: memoQ, Phrase
