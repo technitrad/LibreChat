@@ -12,7 +12,7 @@ cache: true
 mcpServers:
   xliff:
     type: sse
-    url: https://xliff-mcp-production.up.railway.app/sse
+    url: https://xliff-mcp-production.up.railway.app/sse/
 
 # =============================================================================
 # Available XLIFF MCP Tools
