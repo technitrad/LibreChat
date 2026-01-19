@@ -12,7 +12,7 @@ cache: true
 mcpServers:
   neolo-tms:
     type: sse
-    url: https://neolo-tms-mcp-production.up.railway.app/sse
+    url: https://${RAILWAY_SERVICE_NEOLO_MCP_URL}/sse
     headers:
       Authorization: "Bearer ${NEOLO_TMS_MCP_API_KEY}"
 
