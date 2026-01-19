@@ -7,10 +7,10 @@ cache: true
 # =============================================================================
 # MCP Server Configuration
 # =============================================================================
-# NEOLO TMS MCP - Translation Management System integration for memoQ and Phrase
+# NEOLO MCP - Translation Management System integration for memoQ and Phrase
 
 mcpServers:
-  neolo-tms:
+  neolo-mcp:
     type: sse
     url: https://${RAILWAY_SERVICE_NEOLO_MCP_URL}/sse
     headers:
