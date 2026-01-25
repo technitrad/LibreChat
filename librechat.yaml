@@ -13,7 +13,7 @@ mcpServers:
   neolo-mcp:
     type: sse
     url: https://${RAILWAY_SERVICE_NEOLO_MCP_URL}/sse
-    timeout: 120000       # 2 minutes for long-running operations (MQM reports)
+    timeout: 900000       # 15 minutes for long-running operations (MQM reports, large projects)
     initTimeout: 30000    # 30 seconds for initialization
     headers:
       Authorization: "Bearer ${NEOLO_TMS_MCP_API_KEY}"
