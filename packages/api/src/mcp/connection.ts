@@ -679,10 +679,12 @@ export class MCPConnection extends EventEmitter {
             logger.info(`${this.getLogPrefix()} Received progress notification:`, notification.params);
             const { progressToken, progress, total, message } = notification.params;
 
-            // Validate token
+            // Auto-register server-generated tokens
+            // This allows MCP servers to send progress without requiring client-provided tokens
+            // (workaround for MCP TypeScript SDK not serializing _meta.progressToken in requests)
             if (!this.activeProgressTokens.has(progressToken)) {
-              logger.debug(`${this.getLogPrefix()} Progress for unknown token: ${progressToken}`);
-              return;
+              logger.info(`${this.getLogPrefix()} Auto-registering server-generated progress token: ${progressToken}`);
+              this.registerProgressToken(progressToken);
             }
 
             // Validate monotonic increase
