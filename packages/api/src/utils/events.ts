@@ -62,7 +62,7 @@ export function sendProgress(
     message?: string;
     serverName?: string;
     toolCallId?: string; // Tool call ID for matching progress to specific tool call
-  }
+  },
 ): void {
   safeWrite(res, `event: progress\ndata: ${JSON.stringify(progressData)}\n\n`);
 }

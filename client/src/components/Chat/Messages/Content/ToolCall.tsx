@@ -8,7 +8,11 @@ import { useLocalize, useProgress } from '~/hooks';
 import { AttachmentGroup } from './Parts';
 import ToolCallInfo from './ToolCallInfo';
 import ProgressText from './ProgressText';
-import { toolCallProgressFamily, clearToolCallProgressAtom, type ProgressState } from '~/store/progress';
+import {
+  toolCallProgressFamily,
+  clearToolCallProgressAtom,
+  type ProgressState,
+} from '~/store/progress';
 import { logger, cn } from '~/utils';
 
 /**

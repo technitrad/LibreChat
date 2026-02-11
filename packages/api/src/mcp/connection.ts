@@ -672,71 +672,73 @@ export class MCPConnection extends EventEmitter {
    */
   private subscribeToProgress(): void {
     try {
-      this.client.setNotificationHandler(
-        ProgressNotificationSchema,
-        async (notification) => {
-          try {
-            logger.info(`${this.getLogPrefix()} Received progress notification:`, notification.params);
-            const { progressToken, progress, total, message } = notification.params;
+      this.client.setNotificationHandler(ProgressNotificationSchema, async (notification) => {
+        try {
+          logger.info(
+            `${this.getLogPrefix()} Received progress notification:`,
+            notification.params,
+          );
+          const { progressToken, progress, total, message } = notification.params;
 
-            // Auto-register server-generated tokens
-            // This allows MCP servers to send progress without requiring client-provided tokens
-            // (workaround for MCP TypeScript SDK not serializing _meta.progressToken in requests)
-            if (!this.activeProgressTokens.has(progressToken)) {
-              logger.info(`${this.getLogPrefix()} Auto-registering server-generated progress token: ${progressToken}`);
-              this.registerProgressToken(progressToken);
-            }
-
-            // Validate monotonic increase
-            const currentState = this.activeProgressTokens.get(progressToken);
-            if (currentState && progress < currentState.progress) {
-              logger.warn(`${this.getLogPrefix()} Progress decreased for ${progressToken}`);
-              return;
-            }
-
-            // Rate limiting
-            if (!this.shouldEmitProgress(progressToken) && (!total || progress < total)) {
-              return;
-            }
-
-            // Update state
-            const newState: t.ProgressState = {
-              token: progressToken,
-              progress,
-              total,
-              message,
-              timestamp: Date.now(),
-            };
-            this.activeProgressTokens.set(progressToken, newState);
-
-            // Emit progress event
-            this.emit('progress', {
-              serverName: this.serverName,
-              progressToken,
-              progress,
-              total,
-              message,
-            });
-
-            // Cleanup if complete
-            if (total && progress >= total) {
-              // Clear existing timer if present to prevent duplicates
-              const existingTimer = this.progressCleanupTimers.get(progressToken);
-              if (existingTimer) {
-                clearTimeout(existingTimer);
-              }
-              const timerId = setTimeout(() => {
-                this.activeProgressTokens.delete(progressToken);
-                this.lastProgressEmit.delete(progressToken);
-                this.progressCleanupTimers.delete(progressToken);
-              }, 5000);
-              this.progressCleanupTimers.set(progressToken, timerId);
-            }
-          } catch (error) {
-            logger.error(`${this.getLogPrefix()} Error handling progress:`, error);
+          // Auto-register server-generated tokens
+          // This allows MCP servers to send progress without requiring client-provided tokens
+          // (workaround for MCP TypeScript SDK not serializing _meta.progressToken in requests)
+          if (!this.activeProgressTokens.has(progressToken)) {
+            logger.info(
+              `${this.getLogPrefix()} Auto-registering server-generated progress token: ${progressToken}`,
+            );
+            this.registerProgressToken(progressToken);
           }
+
+          // Validate monotonic increase
+          const currentState = this.activeProgressTokens.get(progressToken);
+          if (currentState && progress < currentState.progress) {
+            logger.warn(`${this.getLogPrefix()} Progress decreased for ${progressToken}`);
+            return;
+          }
+
+          // Rate limiting
+          if (!this.shouldEmitProgress(progressToken) && (!total || progress < total)) {
+            return;
+          }
+
+          // Update state
+          const newState: t.ProgressState = {
+            token: progressToken,
+            progress,
+            total,
+            message,
+            timestamp: Date.now(),
+          };
+          this.activeProgressTokens.set(progressToken, newState);
+
+          // Emit progress event
+          this.emit('progress', {
+            serverName: this.serverName,
+            progressToken,
+            progress,
+            total,
+            message,
+          });
+
+          // Cleanup if complete
+          if (total && progress >= total) {
+            // Clear existing timer if present to prevent duplicates
+            const existingTimer = this.progressCleanupTimers.get(progressToken);
+            if (existingTimer) {
+              clearTimeout(existingTimer);
+            }
+            const timerId = setTimeout(() => {
+              this.activeProgressTokens.delete(progressToken);
+              this.lastProgressEmit.delete(progressToken);
+              this.progressCleanupTimers.delete(progressToken);
+            }, 5000);
+            this.progressCleanupTimers.set(progressToken, timerId);
+          }
+        } catch (error) {
+          logger.error(`${this.getLogPrefix()} Error handling progress:`, error);
         }
-      );
+      });
     } catch (error) {
       logger.warn(`${this.getLogPrefix()} Failed to setup progress notifications:`, error);
     }

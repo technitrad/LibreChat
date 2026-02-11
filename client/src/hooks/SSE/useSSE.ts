@@ -292,13 +292,14 @@ export default function useSSE(
     setIsSubmitting(true);
     sse.stream();
 
+    const timers = progressCleanupTimers.current;
     return () => {
       const isCancelled = sse.readyState <= 1;
       sse.close();
       // Clear progress map and pending cleanup timers on unmount
       setToolCallProgressMap(new Map());
-      progressCleanupTimers.current.forEach(clearTimeout);
-      progressCleanupTimers.current.clear();
+      timers.forEach(clearTimeout);
+      timers.clear();
       if (isCancelled) {
         const e = new Event('cancel');
         /* @ts-ignore */

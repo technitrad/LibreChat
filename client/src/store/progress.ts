@@ -17,17 +17,14 @@ export const toolCallProgressFamily = atomFamily((toolCallId: string) =>
     // Don't return data for empty string key
     if (!toolCallId) return undefined;
     return get(toolCallProgressMapAtom).get(toolCallId);
-  })
+  }),
 );
 
 // Cleanup action - remove progress entry for a specific tool call
-export const clearToolCallProgressAtom = atom(
-  null,
-  (get, set, toolCallId: string) => {
-    if (!toolCallId) return;
-    const current = get(toolCallProgressMapAtom);
-    const newMap = new Map(current);
-    newMap.delete(toolCallId);
-    set(toolCallProgressMapAtom, newMap);
-  }
-);
+export const clearToolCallProgressAtom = atom(null, (get, set, toolCallId: string) => {
+  if (!toolCallId) return;
+  const current = get(toolCallProgressMapAtom);
+  const newMap = new Map(current);
+  newMap.delete(toolCallId);
+  set(toolCallProgressMapAtom, newMap);
+});
