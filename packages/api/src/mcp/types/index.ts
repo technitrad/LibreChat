@@ -187,6 +187,7 @@ export type AddServerResult = {
 export interface BasicConnectionOptions {
   serverName: string;
   serverConfig: MCPOptions;
+  useSSRFProtection?: boolean;
 }
 
 export interface OAuthConnectionOptions {
