@@ -89,7 +89,8 @@
     "migrate:agent-permissions:batch": "node config/migrate-agent-permissions.js --batch-size=50",
     "migrate:prompt-permissions:dry-run": "node config/migrate-prompt-permissions.js --dry-run",
     "migrate:prompt-permissions": "node config/migrate-prompt-permissions.js",
-    "migrate:prompt-permissions:batch": "node config/migrate-prompt-permissions.js --batch-size=50"
+    "migrate:prompt-permissions:batch": "node config/migrate-prompt-permissions.js --batch-size=50",
+    "activity-report": "node config/activity-report.js"
   },
   "repository": {
     "type": "git",
@@ -110,6 +111,7 @@
     "@types/react-virtualized": "^9.22.0",
     "caniuse-lite": "^1.0.30001741",
     "cross-env": "^7.0.3",
+    "docx": "^9.5.1",
     "elliptic": "^6.6.1",
     "eslint": "^9.39.1",
     "eslint-config-prettier": "^10.0.1",

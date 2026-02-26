@@ -690,13 +690,6 @@ export class MCPConnection extends EventEmitter {
             this.registerProgressToken(progressToken);
           }
 
-          // Validate monotonic increase
-          const currentState = this.activeProgressTokens.get(progressToken);
-          if (currentState && progress < currentState.progress) {
-            logger.warn(`${this.getLogPrefix()} Progress decreased for ${progressToken}`);
-            return;
-          }
-
           // Rate limiting
           if (!this.shouldEmitProgress(progressToken) && (!total || progress < total)) {
             return;

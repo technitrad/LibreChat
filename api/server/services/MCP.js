@@ -520,16 +520,35 @@ function createToolInstance({
         },
         oauthStart,
         oauthEnd,
-        onProgress: (progressData) => {
-          // Forward progress events to client via SSE, including tool call ID for matching
+        onProgress: async (progressData) => {
           logger.debug(
             `[MCP][${serverName}][${toolName}] Sending progress to client:`,
             progressData,
           );
-          sendProgress(res, {
-            ...progressData,
-            toolCallId: toolCall.id, // Include tool call ID so frontend can match progress to specific tool call
-          });
+          // Strip progressToken and serverName — internal-only, not needed by client
+          const eventData = {
+            progress: progressData.progress,
+            total: progressData.total,
+            message: progressData.message,
+            toolCallId: toolCall.id,
+          };
+          try {
+            if (streamId) {
+              // Resumable mode: emit via GenerationJobManager (transient, no persistence)
+              await GenerationJobManager.emitTransientEvent(streamId, {
+                event: 'progress',
+                data: eventData,
+              });
+            } else {
+              // Legacy mode: write directly to response
+              sendProgress(res, eventData);
+            }
+          } catch (err) {
+            logger.error(
+              `[MCP][${serverName}][${toolName}] Failed to emit progress:`,
+              err,
+            );
+          }
         },
         graphTokenResolver: getGraphApiToken,
       });

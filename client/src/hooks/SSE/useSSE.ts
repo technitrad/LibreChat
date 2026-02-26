@@ -1,8 +1,7 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { v4 } from 'uuid';
 import { SSE } from 'sse.js';
 import { useSetRecoilState } from 'recoil';
-import { useSetAtom } from 'jotai';
 import {
   request,
   Constants,
@@ -17,7 +16,7 @@ import type { TResData } from '~/common';
 import { useGetStartupConfig, useGetUserBalance } from '~/data-provider';
 import { useAuthContext } from '~/hooks/AuthContext';
 import useEventHandlers from './useEventHandlers';
-import { toolCallProgressMapAtom } from '~/store/progress';
+import { useProgressTracking } from './useProgressTracking';
 import store from '~/store';
 
 const clearDraft = (conversationId?: string | null) => {
@@ -52,8 +51,7 @@ export default function useSSE(
   const [completed, setCompleted] = useState(new Set());
   const setAbortScroll = useSetRecoilState(store.abortScrollFamily(runIndex));
   const setShowStopButton = useSetRecoilState(store.showStopButtonByIndex(runIndex));
-  const setToolCallProgressMap = useSetAtom(toolCallProgressMapAtom);
-  const progressCleanupTimers = useRef<Map<string, NodeJS.Timeout>>(new Map());
+  const { handleProgressEvent, cleanupProgress } = useProgressTracking();
 
   const {
     setMessages,
@@ -120,46 +118,7 @@ export default function useSSE(
       }
     });
 
-    sse.addEventListener('progress', (e: MessageEvent) => {
-      try {
-        const data = JSON.parse(e.data);
-        const { progress, total, message, toolCallId } = data;
-
-        // Store progress by toolCallId for exact matching to tool calls
-        if (toolCallId != null) {
-          setToolCallProgressMap((currentMap) => {
-            const newMap = new Map(currentMap);
-            newMap.set(toolCallId, {
-              progress,
-              total,
-              message,
-              timestamp: Date.now(),
-            });
-            return newMap;
-          });
-
-          // Auto-cleanup when progress completes
-          if (total && progress >= total) {
-            // Clear existing timer if present to prevent duplicates
-            const existingTimer = progressCleanupTimers.current.get(toolCallId);
-            if (existingTimer) {
-              clearTimeout(existingTimer);
-            }
-            const timerId = setTimeout(() => {
-              setToolCallProgressMap((currentMap) => {
-                const newMap = new Map(currentMap);
-                newMap.delete(toolCallId);
-                return newMap;
-              });
-              progressCleanupTimers.current.delete(toolCallId);
-            }, 5000);
-            progressCleanupTimers.current.set(toolCallId, timerId);
-          }
-        }
-      } catch (error) {
-        console.error('Error parsing progress event:', error);
-      }
-    });
+    sse.addEventListener('progress', handleProgressEvent);
 
     sse.addEventListener('message', (e: MessageEvent) => {
       const data = JSON.parse(e.data);
@@ -292,14 +251,10 @@ export default function useSSE(
     setIsSubmitting(true);
     sse.stream();
 
-    const timers = progressCleanupTimers.current;
     return () => {
       const isCancelled = sse.readyState <= 1;
       sse.close();
-      // Clear progress map and pending cleanup timers on unmount
-      setToolCallProgressMap(new Map());
-      timers.forEach(clearTimeout);
-      timers.clear();
+      cleanupProgress();
       if (isCancelled) {
         const e = new Event('cancel');
         /* @ts-ignore */

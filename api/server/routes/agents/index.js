@@ -97,7 +97,13 @@ router.get('/chat/stream/:streamId', async (req, res) => {
     streamId,
     (event) => {
       if (!res.writableEnded) {
-        res.write(`event: message\ndata: ${JSON.stringify(event)}\n\n`);
+        // Progress events are wrapped as { event: 'progress', data: {...} }
+        // Write them as SSE event type 'progress' so client addEventListener('progress') receives them
+        if (event.event === 'progress') {
+          res.write(`event: progress\ndata: ${JSON.stringify(event.data)}\n\n`);
+        } else {
+          res.write(`event: message\ndata: ${JSON.stringify(event)}\n\n`);
+        }
         if (typeof res.flush === 'function') {
           res.flush();
         }

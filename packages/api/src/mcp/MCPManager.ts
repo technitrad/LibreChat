@@ -384,13 +384,17 @@ Please follow these instructions when using tools from the respective MCP server
       // Rethrowing allows the caller (createMCPTool) to handle the final user message
       throw error;
     } finally {
-      // Clean up progress listener to prevent memory leaks
-      if (connection && progressHandler) {
-        connection.off('progress', progressHandler);
-      }
-      // Clean up progress token to prevent memory leak
-      if (connection && progressToken) {
-        connection.unregisterProgressToken(progressToken);
+      // Delay progress cleanup to allow in-flight events (e.g., 100% completion)
+      // to be delivered before removing the listener
+      if (connection && (progressHandler || progressToken)) {
+        setTimeout(() => {
+          if (progressHandler) {
+            connection.off('progress', progressHandler);
+          }
+          if (progressToken) {
+            connection.unregisterProgressToken(progressToken);
+          }
+        }, 500);
       }
     }
   }

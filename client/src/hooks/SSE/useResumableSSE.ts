@@ -20,6 +20,7 @@ import { useGetStartupConfig, useGetUserBalance, queueTitleGeneration } from '~/
 import type { ActiveJobsResponse } from '~/data-provider';
 import { useAuthContext } from '~/hooks/AuthContext';
 import useEventHandlers from './useEventHandlers';
+import { useProgressTracking } from './useProgressTracking';
 import store from '~/store';
 
 const clearDraft = (conversationId?: string | null) => {
@@ -94,6 +95,7 @@ export default function useResumableSSE(
   const [streamId, setStreamId] = useState<string | null>(null);
   const setAbortScroll = useSetRecoilState(store.abortScrollFamily(runIndex));
   const setShowStopButton = useSetRecoilState(store.showStopButtonByIndex(runIndex));
+  const { handleProgressEvent, cleanupProgress } = useProgressTracking();
 
   const sseRef = useRef<SSE | null>(null);
   const reconnectAttemptRef = useRef(0);
@@ -165,6 +167,8 @@ export default function useResumableSSE(
         setShowStopButton(true);
         reconnectAttemptRef.current = 0;
       });
+
+      sse.addEventListener('progress', handleProgressEvent);
 
       sse.addEventListener('message', (e: MessageEvent) => {
         try {
@@ -543,6 +547,7 @@ export default function useResumableSSE(
       startupConfig?.balance?.enabled,
       balanceQuery,
       removeActiveJob,
+      handleProgressEvent,
     ],
   );
 
@@ -691,6 +696,7 @@ export default function useResumableSSE(
       }
       // Clear handler maps to prevent memory leaks and stale state
       clearStepMaps();
+      cleanupProgress();
       // Reset UI state on cleanup - useResumeOnLoad will restore if needed
       setIsSubmitting(false);
       setShowStopButton(false);

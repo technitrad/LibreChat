@@ -836,6 +836,24 @@ class GenerationJobManagerClass {
   }
 
   /**
+   * Emit a transient event to subscribers without persistence or buffering.
+   * Used for ephemeral events like progress notifications that should not
+   * be replayed on reconnection or stored in Redis.
+   */
+  async emitTransientEvent(streamId: string, event: t.ServerSentEvent): Promise<void> {
+    const runtime = this.runtimeState.get(streamId);
+    if (!runtime || runtime.abortController.signal.aborted) {
+      return;
+    }
+    // Skip if no subscriber — transient events are fire-and-forget
+    if (!runtime.hasSubscriber) {
+      return;
+    }
+    // Emit directly to transport, bypassing appendChunk and earlyEventBuffer
+    await this.eventTransport.emitChunk(streamId, event);
+  }
+
+  /**
    * Extract and save run step from event data.
    * The data is already the run step object from the event payload.
    */
