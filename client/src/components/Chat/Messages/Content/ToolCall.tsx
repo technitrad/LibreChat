@@ -29,16 +29,13 @@ function getInProgressText(
   functionName: string,
   localize: ReturnType<typeof useLocalize>,
 ): string {
-  if (mcpProgress?.message && mcpProgress.total) {
+  if (mcpProgress?.total && mcpProgress.progress > 0) {
     const pct = Math.round((mcpProgress.progress / mcpProgress.total) * 100);
-    return `${mcpProgress.message} (${pct}%)`;
+    const label = mcpProgress.message || functionName;
+    return `${label} (${pct}%)`;
   }
   if (mcpProgress?.message) {
     return mcpProgress.message;
-  }
-  if (mcpProgress?.total) {
-    const pct = Math.round((mcpProgress.progress / mcpProgress.total) * 100);
-    return `${functionName}: ${pct}%`;
   }
   if (functionName) {
     return localize('com_assistants_running_var', { 0: functionName });
@@ -169,13 +166,15 @@ export default function ToolCall({
     }
   }, [auth]);
 
+  // Get simulated progress
+  const simulatedProgress = useProgress(initialProgress);
+
   // Get real-time progress from MCP server by tool call ID
+  // This provides exact matching - no stale data from other tool calls
   const mcpProgress = useAtomValue(toolCallProgressFamily(toolCallId ?? ''));
   const clearProgress = useSetAtom(clearToolCallProgressAtom);
 
-  // Simulated progress only for non-MCP tools (no real progress data)
-  const simulatedProgress = useProgress(initialProgress);
-
+  // Check if tool has completed (has output)
   const hasOutput = output != null && output.length > 0;
 
   // Clean up progress data when tool completes
@@ -185,16 +184,15 @@ export default function ToolCall({
     }
   }, [hasOutput, toolCallId, clearProgress]);
 
-  // Use MCP progress when available, simulated fallback for non-MCP tools
+  // Calculate effective progress for the progress bar
+  // If tool has output, it's completed (progress = 1)
+  // Otherwise use simulated progress for the animation
   const progress = useMemo(() => {
     if (hasOutput) {
-      return 1;
-    }
-    if (mcpProgress?.total) {
-      return mcpProgress.progress / mcpProgress.total;
+      return 1; // Tool completed
     }
     return simulatedProgress;
-  }, [hasOutput, mcpProgress, simulatedProgress]);
+  }, [hasOutput, simulatedProgress]);
 
   const cancelled = (!isSubmitting && progress < 1 && !hasOutput) || error === true;
 
