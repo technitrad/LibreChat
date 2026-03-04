@@ -9,6 +9,10 @@ cache: true
 # =============================================================================
 # NEOLO MCP - Translation Management System integration for memoQ and Phrase
 
+mcpSettings:
+  allowedDomains:
+    - 'http://mcp.railway.internal:8080'
+
 mcpServers:
   neolo-mcp:
     type: sse
