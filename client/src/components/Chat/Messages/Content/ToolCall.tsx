@@ -29,11 +29,16 @@ function getInProgressText(
   functionName: string,
   localize: ReturnType<typeof useLocalize>,
 ): string {
+  if (mcpProgress?.message && mcpProgress.total) {
+    const pct = Math.round((mcpProgress.progress / mcpProgress.total) * 100);
+    return `${mcpProgress.message} (${pct}%)`;
+  }
   if (mcpProgress?.message) {
     return mcpProgress.message;
   }
   if (mcpProgress?.total) {
-    return `${functionName}: ${mcpProgress.progress}/${mcpProgress.total}`;
+    const pct = Math.round((mcpProgress.progress / mcpProgress.total) * 100);
+    return `${functionName}: ${pct}%`;
   }
   if (functionName) {
     return localize('com_assistants_running_var', { 0: functionName });
