@@ -71,7 +71,7 @@ function isStreamableHTTPOptions(options: t.MCPOptions): options is t.Streamable
 }
 
 const FIVE_MINUTES = 5 * 60 * 1000;
-const DEFAULT_TIMEOUT = 1800000; // 30 minutes for long-running MCP tools (MQM reports, QA)
+const DEFAULT_TIMEOUT = 7200000; // 2 hours for long-running MCP tools (MQM reports, QA)
 /** SSE connections through proxies may need longer initial handshake time */
 const SSE_CONNECT_TIMEOUT = 120000;
 /** Default body timeout for Streamable HTTP GET SSE streams that idle between server pushes */
