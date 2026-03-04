@@ -12,7 +12,7 @@ cache: true
 mcpServers:
   neolo-mcp:
     type: sse
-    url: https://${RAILWAY_SERVICE_NEOLO_MCP_URL}/sse
+    url: http://mcp.railway.internal:8080/sse
     timeout: 1800000      # 30 minutes for long-running operations (MQM reports, large projects)
     initTimeout: 30000    # 30 seconds for initialization
     headers:
