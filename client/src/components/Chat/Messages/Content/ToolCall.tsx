@@ -169,15 +169,13 @@ export default function ToolCall({
     }
   }, [auth]);
 
-  // Get simulated progress
-  const simulatedProgress = useProgress(initialProgress);
-
   // Get real-time progress from MCP server by tool call ID
-  // This provides exact matching - no stale data from other tool calls
   const mcpProgress = useAtomValue(toolCallProgressFamily(toolCallId ?? ''));
   const clearProgress = useSetAtom(clearToolCallProgressAtom);
 
-  // Check if tool has completed (has output)
+  // Simulated progress only for non-MCP tools (no real progress data)
+  const simulatedProgress = useProgress(initialProgress);
+
   const hasOutput = output != null && output.length > 0;
 
   // Clean up progress data when tool completes
@@ -187,15 +185,16 @@ export default function ToolCall({
     }
   }, [hasOutput, toolCallId, clearProgress]);
 
-  // Calculate effective progress for the progress bar
-  // If tool has output, it's completed (progress = 1)
-  // Otherwise use simulated progress for the animation
+  // Use MCP progress when available, simulated fallback for non-MCP tools
   const progress = useMemo(() => {
     if (hasOutput) {
-      return 1; // Tool completed
+      return 1;
+    }
+    if (mcpProgress?.total) {
+      return mcpProgress.progress / mcpProgress.total;
     }
     return simulatedProgress;
-  }, [hasOutput, simulatedProgress]);
+  }, [hasOutput, mcpProgress, simulatedProgress]);
 
   const cancelled = (!isSubmitting && progress < 1 && !hasOutput) || error === true;
 
