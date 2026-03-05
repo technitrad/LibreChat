@@ -9,7 +9,7 @@ import {
   actionDomainSeparator,
 } from 'librechat-data-provider';
 import type { TAttachment } from 'librechat-data-provider';
-import { useLocalize, useProgress } from '~/hooks';
+import { useLocalize } from '~/hooks';
 import { AttachmentGroup } from './Parts';
 import ToolCallInfo from './ToolCallInfo';
 import ProgressText from './ProgressText';
@@ -166,15 +166,10 @@ export default function ToolCall({
     }
   }, [auth]);
 
-  // Get simulated progress
-  const simulatedProgress = useProgress(initialProgress);
-
   // Get real-time progress from MCP server by tool call ID
-  // This provides exact matching - no stale data from other tool calls
   const mcpProgress = useAtomValue(toolCallProgressFamily(toolCallId ?? ''));
   const clearProgress = useSetAtom(clearToolCallProgressAtom);
 
-  // Check if tool has completed (has output)
   const hasOutput = output != null && output.length > 0;
 
   // Clean up progress data when tool completes
@@ -184,15 +179,15 @@ export default function ToolCall({
     }
   }, [hasOutput, toolCallId, clearProgress]);
 
-  // Calculate effective progress for the progress bar
-  // If tool has output, it's completed (progress = 1)
-  // Otherwise use simulated progress for the animation
   const progress = useMemo(() => {
     if (hasOutput) {
-      return 1; // Tool completed
+      return 1;
     }
-    return simulatedProgress;
-  }, [hasOutput, simulatedProgress]);
+    if (mcpProgress?.total) {
+      return mcpProgress.progress / mcpProgress.total;
+    }
+    return initialProgress;
+  }, [hasOutput, mcpProgress, initialProgress]);
 
   const cancelled = (!isSubmitting && progress < 1 && !hasOutput) || error === true;
 
