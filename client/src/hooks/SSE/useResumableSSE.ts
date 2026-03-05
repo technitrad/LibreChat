@@ -9,6 +9,7 @@ import {
   QueryKeys,
   ErrorTypes,
   apiBaseUrl,
+  dataService,
   createPayload,
   ViolationTypes,
   LocalStorageKeys,
@@ -464,10 +465,31 @@ export default function useResumableSSE(
           setIsSubmitting(true);
           setShowStopButton(true);
         } else {
-          console.error('[ResumableSSE] Max reconnect attempts reached');
+          // MAX_RETRIES reached - check if job is still active before giving up
+          try {
+            const { activeJobIds } = await dataService.getActiveJobs();
+            if (activeJobIds.includes(currentStreamId)) {
+              // Job still running on server - reset counter and keep retrying
+              console.log('[ResumableSSE] Job still active on server, resetting retry counter');
+              reconnectAttemptRef.current = 0;
+              const delay = 5000;
+              sse.close();
+              reconnectTimeoutRef.current = setTimeout(() => {
+                if (submissionRef.current) {
+                  subscribeToStream(currentStreamId, submissionRef.current, true);
+                }
+              }, delay);
+              setIsSubmitting(true);
+              setShowStopButton(true);
+              return;
+            }
+          } catch (e) {
+            console.error('[ResumableSSE] Failed to check job status:', e);
+          }
+          // Job not active (completed or gone) - show error
+          console.error('[ResumableSSE] Max reconnect attempts reached and job not active');
           sse.close();
           errorHandler({ data: undefined, submission: currentSubmission as EventSubmission });
-          // Optimistically remove from active jobs on max retries
           removeActiveJob(currentStreamId);
           setIsSubmitting(false);
           setShowStopButton(false);

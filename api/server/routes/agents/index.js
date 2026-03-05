@@ -93,6 +93,8 @@ router.get('/chat/stream/:streamId', async (req, res) => {
     }
   }
 
+  let keepaliveInterval;
+
   const result = await GenerationJobManager.subscribe(
     streamId,
     (event) => {
@@ -110,6 +112,7 @@ router.get('/chat/stream/:streamId', async (req, res) => {
       }
     },
     (event) => {
+      clearInterval(keepaliveInterval);
       if (!res.writableEnded) {
         res.write(`event: message\ndata: ${JSON.stringify(event)}\n\n`);
         if (typeof res.flush === 'function') {
@@ -119,6 +122,7 @@ router.get('/chat/stream/:streamId', async (req, res) => {
       }
     },
     (error) => {
+      clearInterval(keepaliveInterval);
       if (!res.writableEnded) {
         res.write(`event: error\ndata: ${JSON.stringify({ error })}\n\n`);
         if (typeof res.flush === 'function') {
@@ -133,7 +137,20 @@ router.get('/chat/stream/:streamId', async (req, res) => {
     return res.status(404).json({ error: 'Failed to subscribe to stream' });
   }
 
+  // Keep-alive: send SSE comments every 25s to prevent Railway proxy timeout (~60s)
+  keepaliveInterval = setInterval(() => {
+    if (!res.writableEnded) {
+      res.write(': keepalive\n\n');
+      if (typeof res.flush === 'function') {
+        res.flush();
+      }
+    } else {
+      clearInterval(keepaliveInterval);
+    }
+  }, 25000);
+
   req.on('close', () => {
+    clearInterval(keepaliveInterval);
     logger.debug(`[AgentStream] Client disconnected from ${streamId}`);
     result.unsubscribe();
   });
