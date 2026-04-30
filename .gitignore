@@ -1,4 +1,4 @@
-### node etc ###
+﻿### node etc ###
 
 # Logs
 data-node
@@ -173,3 +173,19 @@ coordination/orchestration/*
 claude-flow
 # Removed Windows wrapper files per user request
 hive-mind-prompt-*.txt
+
+# Personal one-off MongoDB query scripts (date-bound debugging output)
+/*_query.js
+/mqm_check*.js
+/today_query.js
+/detail_query.js
+/query_mongo.js
+
+# Local activity report exports (point-in-time data snapshots)
+/LibreChat_Activity_Report_*.docx
+/activity-report-*.docx
+/activity-report-*.json
+
+# Drafts and Windows accidental files
+/pr_comment_draft.md
+/nul
