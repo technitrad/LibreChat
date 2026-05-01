@@ -11,12 +11,19 @@ cache: true
 
 mcpSettings:
   allowedDomains:
+    # New embedded endpoint (NEOLO MCP consolidation Phase 1.0, May 2026)
+    - 'https://api.neolo.ai'
+    # Old standalone endpoint kept whitelisted for rollback during 7-day soak
     - 'http://mcp.railway.internal:8080'
 
 mcpServers:
   neolo-mcp:
     type: sse
-    url: http://mcp.railway.internal:8080/sse
+    # Cutover from internal librechat-project MCP service (mcp.railway.internal:8080)
+    # to embedded /mcp on neolo-project Backend (api.neolo.ai/mcp). The old
+    # service stays running for 7 days as rollback target. Revert by changing
+    # this single URL line back to http://mcp.railway.internal:8080/sse.
+    url: https://api.neolo.ai/mcp/sse
     timeout: 1800000      # 30 minutes for long-running operations (MQM reports, large projects)
     initTimeout: 30000    # 30 seconds for initialization
     headers:
