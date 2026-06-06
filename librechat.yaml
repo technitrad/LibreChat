@@ -112,3 +112,18 @@ interface:
   parameters: true
   presets: true
   sidePanel: true
+
+# =============================================================================
+# Per-user spend cap (cost backstop)
+# =============================================================================
+# Replaces the deprecated CHECK_BALANCE env. 1,000,000 credits = $1.
+# Auto-refill is lazy + additive: refillAmount is added only when a request
+# would drive the balance to <=0 AND the interval has elapsed since lastRefill.
+# Net effect = a hard $20/user/day ceiling that self-heals daily (no rollover).
+balance:
+  enabled: true
+  startBalance: 20000000      # $20 one-time starting buffer
+  autoRefillEnabled: true
+  refillAmount: 20000000      # +$20 ...
+  refillIntervalValue: 1
+  refillIntervalUnit: days    # ... once per day, only when balance hits 0
