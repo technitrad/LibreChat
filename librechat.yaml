@@ -110,15 +110,15 @@ modelSpecs:
         endpoint: "agents"
         agent_id: "agent_FLiwwIMe7Y1zXVmce9Ruu6"
 
-# modelSelect ON so users can choose among the 3 enforced capped specs
-# (NEOLO Assistant / ChatGPT / Gemini). This is SAFE with enforce:true — the
-# server only accepts specs that are in the list, all of which carry a 64k cap.
-# parameters/presets stay OFF: those are the real bypass vectors (the params
-# panel would let a user raise maxContextTokens past 64k). So users get model
-# choice but cannot escape the per-call cap or the per-user budget.
+# modelSelect:false hides the raw endpoint groups (OpenAI/Google/Anthropic/
+# My Agents) from the picker — `filteredEndpoints` returns [] when modelSelect
+# is off (useEndpoints.ts). The 3 modelSpecs STILL render and stay selectable,
+# because ModelSelector shows the spec list whenever modelSpecs.list is present
+# regardless of modelSelect (ModelSelector.tsx:128). Net: the picker shows ONLY
+# the 3 capped specs (NEOLO Assistant / ChatGPT / Gemini), no raw endpoints.
+# parameters/presets stay OFF: those are the real cap-override bypass vectors.
 interface:
-  modelSelect: true
-  endpointsMenu: false
+  modelSelect: false
   parameters: false
   presets: false
   sidePanel: true
