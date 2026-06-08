@@ -94,10 +94,15 @@ modelSpecs:
         endpoint: "agents"
         agent_id: "agent_N2AY02yFV92f15ZNCM1p6G"
 
+# Locked down to make the enforced single-spec airtight (clears the LibreChat
+# "enforce conflicts with interface options" warning). With modelSelect/presets/
+# parameters off, users cannot pick another model, load a preset, or open the
+# parameters panel to override the agent's 64k maxContextTokens cap. Every chat
+# is the NEOLO Assistant agent on the capped path, with no UI side-door.
 interface:
-  modelSelect: true
-  parameters: true
-  presets: true
+  modelSelect: false
+  parameters: false
+  presets: false
   sidePanel: true
 
 # =============================================================================
