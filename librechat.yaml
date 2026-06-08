@@ -79,11 +79,13 @@ endpoints:
 # schema floor, producing $45-71/day spikes. Fix: enforce a curated list of
 # context-capped specs so there is NO uncapped path. NEOLO Assistant (Sonnet 4.6,
 # 64k cap in the agent's model_parameters, all 91 neolo-mcp tools, agent id
-# agent_N2AY02yFV92f15ZNCM1p6G) is the default; ChatGPT + Gemini are added as
-# general-chat options, each with their own 64k maxContextTokens. enforce:true +
-# no addedEndpoints => users can ONLY pick from these capped specs (the server
-# rejects any other), so every request is on a capped path. The $30/user/day
-# balance cap (below) counts spend across all three uniformly as the backstop.
+# agent_N2AY02yFV92f15ZNCM1p6G) is the default. ChatGPT + Gemini are ALSO agents
+# (agent_pf3h5Hg6KPxpJSbajgeHJ0 / agent_FLiwwIMe7Y1zXVmce9Ruu6) carrying the same
+# 91 neolo-mcp tools + a 64k cap, so all three are tool-capable, just on different
+# models. enforce:true + no addedEndpoints => users can ONLY pick from these
+# capped agent specs (the server rejects any other), so every request is on a
+# capped path. The $30/user/day balance cap (below) counts spend across all three
+# uniformly as the backstop.
 modelSpecs:
   enforce: true
   prioritize: true
@@ -97,18 +99,16 @@ modelSpecs:
         agent_id: "agent_N2AY02yFV92f15ZNCM1p6G"
     - name: "chatgpt-capped"
       label: "ChatGPT (GPT-5.2)"
-      description: "General chat (no NEOLO tools). Context-capped at 64k for cost control."
+      description: "GPT-5.2 with all 91 NEOLO MCP tools. Context-capped (64k) for cost control."
       preset:
-        endpoint: "openAI"
-        model: "gpt-5.2-2025-12-11"
-        maxContextTokens: 64000
+        endpoint: "agents"
+        agent_id: "agent_pf3h5Hg6KPxpJSbajgeHJ0"
     - name: "gemini-capped"
       label: "Gemini 3.5 Flash"
-      description: "General chat (no NEOLO tools). Context-capped at 64k for cost control."
+      description: "Gemini 3.5 Flash with all 91 NEOLO MCP tools. Context-capped (64k) for cost control."
       preset:
-        endpoint: "google"
-        model: "gemini-3.5-flash"
-        maxContextTokens: 64000
+        endpoint: "agents"
+        agent_id: "agent_FLiwwIMe7Y1zXVmce9Ruu6"
 
 # modelSelect ON so users can choose among the 3 enforced capped specs
 # (NEOLO Assistant / ChatGPT / Gemini). This is SAFE with enforce:true — the
