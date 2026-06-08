@@ -72,40 +72,27 @@ endpoints:
     maxRecursionLimit: 200    # Hard ceiling for per-agent overrides
 
 # =============================================================================
-# Model Specs — context-cost guardrail (added 2026-06-05)
+# Model Specs — context-cost guardrail (2026-06-05, revised 2026-06-08)
 # =============================================================================
-# One chat user's segment-by-segment translation accumulated ~585k tokens of
-# context per turn (every new sentence re-sent ALL prior segments → O(n^2)).
-# Capping context at 32k truncates stale history; 32k still fits the MCP tool
-# schemas + the current segment + its TM/termbase results. enforce:true so it
-# can't be raised from the UI. agents + assistants stay available for MQM work.
+# Background: chat users on the raw anthropic endpoint accumulated 339k+ tokens
+# of context per turn (history re-sent every turn → O(n^2)) + the ~38k MCP tool
+# schema floor, producing $45-71/day spikes. Fix: a single enforced spec that
+# routes ALL chat through the NEOLO Assistant agent (Sonnet 4.6, 64k context cap
+# in the agent's model_parameters, all 91 neolo-mcp tools). enforce:true + no
+# addedEndpoints => users cannot reach the raw uncapped endpoint, so every
+# request is on the cheap capped path and the per-user budget is only ever
+# spent there. Agent id: agent_N2AY02yFV92f15ZNCM1p6G (public-viewer ACL = all).
 modelSpecs:
   enforce: true
   prioritize: true
-  addedEndpoints:
-    - agents
-    - assistants
   list:
-    - name: "claude-sonnet-4-6-capped"
-      label: "Claude Sonnet 4.6"
+    - name: "neolo-assistant"
+      label: "NEOLO Assistant"
       default: true
+      description: "memoQ/Phrase projects, termbases, TMs, QA, MQM, terminology. Context-capped (64k) for cost control."
       preset:
-        endpoint: "anthropic"
-        model: "claude-sonnet-4-6"
-        maxContextTokens: 32000
-        promptCache: true
-    - name: "gpt-5-2-capped"
-      label: "GPT-5.2"
-      preset:
-        endpoint: "openAI"
-        model: "gpt-5.2-2025-12-11"
-        maxContextTokens: 32000
-    - name: "gemini-3-5-flash-capped"
-      label: "Gemini 3.5 Flash"
-      preset:
-        endpoint: "google"
-        model: "gemini-3.5-flash"
-        maxContextTokens: 32000
+        endpoint: "agents"
+        agent_id: "agent_N2AY02yFV92f15ZNCM1p6G"
 
 interface:
   modelSelect: true
@@ -119,11 +106,11 @@ interface:
 # Replaces the deprecated CHECK_BALANCE env. 1,000,000 credits = $1.
 # Auto-refill is lazy + additive: refillAmount is added only when a request
 # would drive the balance to <=0 AND the interval has elapsed since lastRefill.
-# Net effect = a hard $20/user/day ceiling that self-heals daily (no rollover).
+# Net effect = a hard $30/user/day ceiling that self-heals daily (no rollover).
 balance:
   enabled: true
-  startBalance: 20000000      # $20 one-time starting buffer
+  startBalance: 30000000      # $30 one-time starting buffer
   autoRefillEnabled: true
-  refillAmount: 20000000      # +$20 ...
+  refillAmount: 30000000      # +$30 ...
   refillIntervalValue: 1
   refillIntervalUnit: days    # ... once per day, only when balance hits 0
