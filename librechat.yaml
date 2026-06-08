@@ -76,12 +76,14 @@ endpoints:
 # =============================================================================
 # Background: chat users on the raw anthropic endpoint accumulated 339k+ tokens
 # of context per turn (history re-sent every turn → O(n^2)) + the ~38k MCP tool
-# schema floor, producing $45-71/day spikes. Fix: a single enforced spec that
-# routes ALL chat through the NEOLO Assistant agent (Sonnet 4.6, 64k context cap
-# in the agent's model_parameters, all 91 neolo-mcp tools). enforce:true + no
-# addedEndpoints => users cannot reach the raw uncapped endpoint, so every
-# request is on the cheap capped path and the per-user budget is only ever
-# spent there. Agent id: agent_N2AY02yFV92f15ZNCM1p6G (public-viewer ACL = all).
+# schema floor, producing $45-71/day spikes. Fix: enforce a curated list of
+# context-capped specs so there is NO uncapped path. NEOLO Assistant (Sonnet 4.6,
+# 64k cap in the agent's model_parameters, all 91 neolo-mcp tools, agent id
+# agent_N2AY02yFV92f15ZNCM1p6G) is the default; ChatGPT + Gemini are added as
+# general-chat options, each with their own 64k maxContextTokens. enforce:true +
+# no addedEndpoints => users can ONLY pick from these capped specs (the server
+# rejects any other), so every request is on a capped path. The $30/user/day
+# balance cap (below) counts spend across all three uniformly as the backstop.
 modelSpecs:
   enforce: true
   prioritize: true
@@ -93,14 +95,29 @@ modelSpecs:
       preset:
         endpoint: "agents"
         agent_id: "agent_N2AY02yFV92f15ZNCM1p6G"
+    - name: "chatgpt-capped"
+      label: "ChatGPT (GPT-5.2)"
+      description: "General chat (no NEOLO tools). Context-capped at 64k for cost control."
+      preset:
+        endpoint: "openAI"
+        model: "gpt-5.2-2025-12-11"
+        maxContextTokens: 64000
+    - name: "gemini-capped"
+      label: "Gemini 3.5 Flash"
+      description: "General chat (no NEOLO tools). Context-capped at 64k for cost control."
+      preset:
+        endpoint: "google"
+        model: "gemini-3.5-flash"
+        maxContextTokens: 64000
 
-# Locked down to make the enforced single-spec airtight (clears the LibreChat
-# "enforce conflicts with interface options" warning). With modelSelect/presets/
-# parameters off, users cannot pick another model, load a preset, or open the
-# parameters panel to override the agent's 64k maxContextTokens cap. Every chat
-# is the NEOLO Assistant agent on the capped path, with no UI side-door.
+# modelSelect ON so users can choose among the 3 enforced capped specs
+# (NEOLO Assistant / ChatGPT / Gemini). This is SAFE with enforce:true — the
+# server only accepts specs that are in the list, all of which carry a 64k cap.
+# parameters/presets stay OFF: those are the real bypass vectors (the params
+# panel would let a user raise maxContextTokens past 64k). So users get model
+# choice but cannot escape the per-call cap or the per-user budget.
 interface:
-  modelSelect: false
+  modelSelect: true
   parameters: false
   presets: false
   sidePanel: true
