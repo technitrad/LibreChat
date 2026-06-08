@@ -118,6 +118,7 @@ modelSpecs:
 # choice but cannot escape the per-call cap or the per-user budget.
 interface:
   modelSelect: true
+  endpointsMenu: false
   parameters: false
   presets: false
   sidePanel: true
