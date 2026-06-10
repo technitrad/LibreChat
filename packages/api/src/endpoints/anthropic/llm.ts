@@ -13,6 +13,7 @@ import {
   configureReasoning,
   getClaudeHeaders,
 } from './helpers';
+import { parseAnthropicCacheTtl, applyCacheTtlFetch } from './cacheTtl';
 import {
   createAnthropicVertexClient,
   isAnthropicVertexCredentials,
@@ -191,6 +192,21 @@ function getLLMConfig(
   const headers = getClaudeHeaders(requestOptions.model ?? '', supportsCacheControl);
   if (headers && requestOptions.clientOptions) {
     requestOptions.clientOptions.defaultHeaders = headers;
+  }
+
+  /**
+   * Extended prompt-cache TTL (opt-in via ANTHROPIC_PROMPT_CACHE_TTL=1h).
+   * `@librechat/agents` hardcodes `cache_control: { type: 'ephemeral' }` with no
+   * ttl and no config; this stamps `ttl: '1h'` onto outgoing cache_control blocks
+   * at the HTTP boundary via the SDK's `clientOptions.fetch`. See cacheTtl.ts.
+   */
+  const promptCacheTtl = parseAnthropicCacheTtl(process.env.ANTHROPIC_PROMPT_CACHE_TTL);
+  if (supportsCacheControl && promptCacheTtl != null && requestOptions.clientOptions) {
+    applyCacheTtlFetch(
+      requestOptions.clientOptions as unknown as { fetch?: unknown } & Record<string, unknown>,
+      promptCacheTtl,
+      (message) => logger.info(message),
+    );
   }
 
   if (options.proxy && requestOptions.clientOptions) {
